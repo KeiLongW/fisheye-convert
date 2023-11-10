@@ -134,8 +134,11 @@ class Fisheye():
     os.makedirs(os.path.join(self.output_path, label_dir), exist_ok=True)
     os.makedirs(os.path.join(self.output_path, img_dir), exist_ok=True)
     
+    print('-'*50)
+    print(f'Start converting from {self.input_path} to {self.output_path}')
+    
     start_time = time.time()
-    for file in os.listdir(os.path.join(self.input_path, label_dir)):
+    for idx, file in enumerate(os.listdir(os.path.join(self.input_path, label_dir))):
       if not file.endswith(".txt"):
         continue
       sample_name = Path(file).stem
@@ -157,7 +160,7 @@ class Fisheye():
       np.savetxt(output_label_file, output_label, delimiter=" ", fmt="%f")
       cv2.imwrite(output_img_file, output_img)
       
-      print('finished a sample:', time.time() - start_time)
+      print(f'finished {str(idx+1)} samples after time(s):', time.time() - start_time)
     
 def main():
   args = parse_args()
