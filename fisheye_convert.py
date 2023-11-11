@@ -7,6 +7,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from numba import njit
+from arg_parser import parse_args
 
 
 @njit
@@ -32,9 +33,6 @@ def _de_convert(x,y,img):
     j = int(x + (img.shape[1]/2))
     i = int(img.shape[0] - (y + (img.shape[0]/2)))
     return i,j
-
-from arg_parser import parse_args
-
 
 class Fisheye():
   def __init__(self, input_path, 
