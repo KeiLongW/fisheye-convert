@@ -11,8 +11,14 @@ from arg_parser import parse_args
 
 
 class PencilConvert():
-  def __init__(self) -> None:
-    pass
+  def __init__(self, input_path, 
+               output_path, 
+               label_dir_prefix, 
+               image_dir_prefix):
+    self.input_path = input_path
+    self.output_path = output_path
+    self.label_dir_prefix = label_dir_prefix
+    self.image_dir_prefix = image_dir_prefix
   
   def test(self):
     input_img_path = '/home/keilong/Desktop/test_defisheye/regular_imgs/images/03033_1691758682389467.jpg'
