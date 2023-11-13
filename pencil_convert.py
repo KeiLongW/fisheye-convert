@@ -5,7 +5,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from numba import njit
+from numba import njit, jit
 
 from arg_parser import parse_args
 
@@ -14,11 +14,15 @@ class PencilConvert():
   def __init__(self, input_path, 
                output_path, 
                label_dir_prefix, 
-               image_dir_prefix):
+               image_dir_prefix,
+               dilation_shape, 
+               dilatation_size):
     self.input_path = input_path
     self.output_path = output_path
     self.label_dir_prefix = label_dir_prefix
     self.image_dir_prefix = image_dir_prefix
+    self.dilation_shape = dilation_shape
+    self.dilatation_size = dilatation_size
   
   def test(self):
     input_img_path = '/home/keilong/Desktop/test_defisheye/regular_imgs/images/03033_1691758682389467.jpg'
@@ -42,18 +46,27 @@ class PencilConvert():
     cv2.imwrite(output_path + 'dilate.jpg', dilate_img)
     cv2.imwrite(output_path + 'pencil.jpg', output_img)
     
+  # https://github.com/open-airlab/pencilnet/blob/main/pencil_perception_module/nodes/pencil_filter.py
   @staticmethod
-  def _convert_one(input_img):
-    output_img = np.zeros_like(input_img)
-    grey_scale_img = np.dot(input_img[...,:3], [0.2989, 0.5870, 0.1140])
-    dilate_img = cv2.dilate(grey_scale_img, np.ones((5,5), np.uint8), iterations=1)
-    for i in range(dilate_img.shape[0]):
-      for j in range(dilate_img.shape[1]):
-        if dilate_img[i][j] == 0:
-          output_img[i][j] = 255
-        else:
-          output_img[i][j] = int(255 * (grey_scale_img[i][j] / dilate_img[i][j]))
+  @jit
+  def _convert_one(input_img, dilation_shape, dilatation_size):
+    grey_scale_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
+    element = cv2.getStructuringElement(dilation_shape, (2 * dilatation_size + 1, 2 * dilatation_size + 1),
+                                    (dilatation_size, dilatation_size))
+    dilate_img = cv2.dilate(grey_scale_img, element)
+    gray_img_32_bit = grey_scale_img.copy().astype(np.uint32)
+    dialted_my = ((gray_img_32_bit * 255)/dilate_img).astype(np.uint8)
+    output_img = np.where(np.isnan(dialted_my), 255, dialted_my).astype(np.uint8)
+    
+    # dilate_img = cv2.dilate(grey_scale_img, np.ones((5,5), np.uint8), iterations=1)
+    # for i in range(dilate_img.shape[0]):
+    #   for j in range(dilate_img.shape[1]):
+    #     if dilate_img[i][j] == 0:
+    #       output_img[i][j] = 255
+    #     else:
+    #       output_img[i][j] = int(255 * (grey_scale_img[i][j] / dilate_img[i][j]))
     return output_img
+  
     
   def convert(self):
     files = os.listdir(self.input_path)
@@ -78,7 +91,7 @@ class PencilConvert():
       
       input_img = cv2.imread(input_img_file, cv2.IMREAD_UNCHANGED)
       
-      output_img = self._convert_one(input_img)
+      output_img = self._convert_one(input_img, self.dilation_shape, self.dilatation_size)
       cv2.imwrite(output_img_file, output_img)
       shutil.copy(input_label_file, output_label_file)
       
@@ -91,7 +104,9 @@ def main():
   pc = PencilConvert(args.input_path, 
                args.output_path,
                args.label_dir_prefix,
-               args.image_dir_prefix)
+               args.image_dir_prefix,
+               cv2.MORPH_ELLIPSE,
+               args.pencil_dilatation_size)
   pc.convert()
   
 if __name__ == "__main__":
