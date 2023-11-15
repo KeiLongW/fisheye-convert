@@ -5,7 +5,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from numba import njit, jit
+from numba import jit, njit
 
 from arg_parser import parse_args
 
@@ -96,7 +96,16 @@ class PencilConvert():
       shutil.copy(input_label_file, output_label_file)
       
       print(f'finished {str(idx+1)} samples after time(s):', time.time() - start_time)
-      
+
+  def simple_convert(self):
+    os.makedirs(self.output_path, exist_ok=True)
+    files = os.listdir(self.input_path)
+    for file in files:
+      output_img_file = os.path.join(self.output_path, file)
+      input_img_file = os.path.join(self.input_path, file)
+      input_img = cv2.imread(input_img_file)
+      output_img = self._convert_one(input_img, self.dilation_shape, self.dilatation_size)
+      cv2.imwrite(output_img_file, output_img)
       
   
 def main():
@@ -107,7 +116,7 @@ def main():
                args.image_dir_prefix,
                cv2.MORPH_ELLIPSE,
                args.pencil_dilatation_size)
-  pc.convert()
+  pc.simple_convert()
   
 if __name__ == "__main__":
   main()
