@@ -35,7 +35,11 @@ def convert_one(img, bbs, kps, resize=None):
     y = int(y)
     w = int(w)
     h = int(h)
-    cropped_img = img[y:y+h, x:x+w]    
+    cropped_img = img[y:y+h, x:x+w]
+    
+    if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
+      continue
+    
     # resize cropped img
     if resize is not None:
       cropped_img = cv2.resize(cropped_img, resize)
@@ -43,8 +47,6 @@ def convert_one(img, bbs, kps, resize=None):
     
     # write the labels of each cropped image to txt
     kp_group = kps[idx]
-    # kp_group[:, 0] = kp_group[:, 0] - x
-    # kp_group[:, 1] = kp_group[:, 1] - y
     for kp in kp_group:
       if kp[2] != 2:
         continue
@@ -79,7 +81,10 @@ def main():
   output_dir = args.output_path
   label_dir_prefix = args.label_dir_prefix
   image_dir_prefix = args.image_dir_prefix
-  resize_shape = (args.resize_x, args.resize_y)
+  if args.resize_x is not None and args.resize_y is not None:
+    resize_shape = (args.resize_x, args.resize_y)
+  else:
+    resize_shape = None
   
   files_in_input_dir = os.listdir(input_dir)
   label_dir = next((s for s in files_in_input_dir if s.startswith(label_dir_prefix) and os.path.isdir(os.path.join(input_dir, s))), None)
