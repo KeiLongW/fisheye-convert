@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Set the input directory
-input_dir="/raid/home/keilongwong/repositories/drone-racing-rectified-dataset"
+input_dir="/raid/home/keilongwong/repositories/drone-racing-dataset/data/piloted"
 
 # Set the output directory
-output_dir="/raid/home/keilongwong/repositories/drone-racing-rectified-greyscale-dataset"
+output_dir="/raid/home/keilongwong/repositories/drone-racing-greyscale-dataset"
 
 for file_path in "$input_dir"/*; do
     if [ -d "$file_path" ]; then
