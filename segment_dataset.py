@@ -37,7 +37,7 @@ def convert_one(img, bbs, kps, resize=None):
     h = int(h)
     cropped_img = img[y:y+h, x:x+w]
     
-    if cropped_img.shape[0] == 0 or cropped_img.shape[1] == 0:
+    if cropped_img.shape[0] <= 1 or cropped_img.shape[1] <= 1:
       continue
     
     # resize cropped img
